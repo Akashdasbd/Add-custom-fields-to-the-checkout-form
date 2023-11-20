@@ -1,0 +1,60 @@
+// Add custom fields to the checkout form
+add_action('woocommerce_before_order_notes', 'custom_checkout_fields');
+
+function custom_checkout_fields($checkout) {
+    echo '<div id="custom_checkout_field">';
+    woocommerce_form_field('student_name', array(
+        'type' => 'text',
+        'class' => array('form-row-wide'),
+        'label' => 'Student Name',
+        'required' => true,
+    ), $checkout->get_value('student_name'));
+
+    woocommerce_form_field('student_email', array(
+        'type' => 'email',
+        'class' => array('form-row-wide'),
+        'label' => 'Student Email',
+        'required' => true,
+    ), $checkout->get_value('student_email'));
+
+    woocommerce_form_field('student_year', array(
+        'type' => 'select',
+        'class' => array('form-row-wide'),
+        'label' => 'Student Year',
+        'required' => true,
+        'options' => array(
+            '1' => '1st Year',
+            '2' => '2nd Year',
+            '3' => '3rd Year',
+            '4' => '4th Year',
+        ),
+    ), $checkout->get_value('student_year'));
+
+    echo '</div>';
+};
+
+// Save custom field data to the order
+add_action('woocommerce_checkout_create_order', 'save_custom_checkout_fields');
+
+function save_custom_checkout_fields($order) {
+    if ($_POST['student_name']) {
+        $order->update_meta_data('_student_name', sanitize_text_field($_POST['student_name']));
+    }
+    if ($_POST['student_email']) {
+        $order->update_meta_data('_student_email', sanitize_email($_POST['student_email']));
+    }
+    if ($_POST['student_year']) {
+        $order->update_meta_data('_student_year', sanitize_text_field($_POST['student_year']));
+    }
+};
+
+// Display custom fields in the order details
+add_action('woocommerce_admin_order_data_after_billing_address', 'display_custom_fields_in_order', 10, 1);
+
+function display_custom_fields_in_order($order) {
+    echo '<p><strong>Student Name:</strong> ' . $order->get_meta('_student_name') . '</p>';
+    echo '<p><strong>Student Email:</strong> ' . $order->get_meta('_student_email') . '</p>';
+    echo '<p><strong>Student Year:</strong> ' . $order->get_meta('_student_year') . '</p>';
+}
+
+
